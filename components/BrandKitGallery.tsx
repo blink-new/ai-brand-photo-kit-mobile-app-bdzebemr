@@ -1,163 +1,184 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, Alert, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, ScrollView, StyleSheet, Pressable, Image, Alert } from 'react-native';
+
+interface Package {
+  id: string;
+  name: string;
+  price: number;
+  features: string[];
+}
 
 interface BrandKitGalleryProps {
   photos: any;
-  selectedPackage: 'starter' | 'professional' | 'premium';
+  selectedPackage: Package | null;
   onBack: () => void;
 }
+
+const categories = [
+  { id: 'lifestyle', name: 'Lifestyle', icon: '🌟' },
+  { id: 'desk', name: 'Desk Scenes', icon: '💻' },
+  { id: 'speaking', name: 'Speaking', icon: '🎤' },
+  { id: 'zoom', name: 'Zoom Calls', icon: '📹' },
+  { id: 'bonus', name: 'Bonus Content', icon: '🎁' }
+];
 
 export default function BrandKitGallery({ photos, selectedPackage, onBack }: BrandKitGalleryProps) {
   const [activeCategory, setActiveCategory] = useState('lifestyle');
 
-  const categories = [
-    { id: 'lifestyle', name: 'Lifestyle', photos: photos?.lifestyle || [] },
-    { id: 'desk', name: 'Desk Scenes', photos: photos?.desk || [] },
-    { id: 'speaking', name: 'Speaking', photos: photos?.speaking || [] },
-    { id: 'zoom', name: 'Zoom Calls', photos: photos?.zoom || [] },
-    { id: 'bonus', name: 'Bonus Content', photos: photos?.bonus || [] },
-  ];
+  const handleCategoryPress = (categoryId: string) => {
+    console.log('Category pressed:', categoryId);
+    setActiveCategory(categoryId);
+  };
 
-  const handlePhotoPress = (photoUrl: string) => {
+  const handlePhotoPress = (photo: any) => {
+    console.log('Photo pressed:', photo);
     Alert.alert(
       'Photo Options',
       'What would you like to do with this photo?',
       [
-        {
-          text: 'Download',
-          onPress: () => {
-            console.log('Download photo:', photoUrl);
-            Alert.alert('Success', 'Photo downloaded to your device!');
-          }
-        },
-        {
-          text: 'Share',
-          onPress: () => {
-            console.log('Share photo:', photoUrl);
-            Alert.alert('Share', 'Sharing options would open here');
-          }
-        },
-        {
-          text: 'Cancel',
-          style: 'cancel'
-        }
+        { text: 'Download', onPress: () => handleDownload(photo) },
+        { text: 'Share', onPress: () => handleShare(photo) },
+        { text: 'Cancel', style: 'cancel' }
       ]
     );
+  };
+
+  const handleDownload = (photo: any) => {
+    console.log('Download photo:', photo);
+    Alert.alert('Download', 'Photo downloaded to your device!');
+  };
+
+  const handleShare = (photo: any) => {
+    console.log('Share photo:', photo);
+    Alert.alert('Share', 'Photo shared successfully!');
   };
 
   const handleDownloadAll = () => {
-    Alert.alert(
-      'Download All Photos',
-      'Download all photos in your brand kit?',
-      [
-        {
-          text: 'Download',
-          onPress: () => {
-            console.log('Download all photos');
-            Alert.alert('Success', 'All photos downloaded to your device!');
-          }
-        },
-        {
-          text: 'Cancel',
-          style: 'cancel'
-        }
-      ]
-    );
+    console.log('Download all pressed');
+    Alert.alert('Download All', 'All photos from your brand kit have been downloaded!');
   };
 
-  const activePhotos = categories.find(cat => cat.id === activeCategory)?.photos || [];
+  const handleBack = () => {
+    console.log('Back pressed from gallery');
+    onBack();
+  };
+
+  const renderPhotos = () => {
+    if (!photos) return null;
+
+    if (activeCategory === 'bonus') {
+      return (
+        <View>
+          <Text style={styles.sectionTitle}>LinkedIn Banners</Text>
+          <View style={styles.photosGrid}>
+            {photos.bonus?.linkedin?.map((photo: any, index: number) => (
+              <Pressable
+                key={`linkedin-${index}`}
+                style={({ pressed }) => [
+                  styles.photoContainer,
+                  styles.bannerPhoto,
+                  pressed && styles.photoPressed
+                ]}
+                onPress={() => handlePhotoPress(photo)}
+              >
+                <Image source={{ uri: photo.url }} style={styles.bannerImage} />
+              </Pressable>
+            ))}
+          </View>
+
+          <Text style={styles.sectionTitle}>Instagram Bio Visuals</Text>
+          <View style={styles.photosGrid}>
+            {photos.bonus?.instagram?.map((photo: any, index: number) => (
+              <Pressable
+                key={`instagram-${index}`}
+                style={({ pressed }) => [
+                  styles.photoContainer,
+                  pressed && styles.photoPressed
+                ]}
+                onPress={() => handlePhotoPress(photo)}
+              >
+                <Image source={{ uri: photo.url }} style={styles.photoImage} />
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      );
+    }
+
+    const categoryPhotos = photos[activeCategory] || [];
+    return (
+      <View style={styles.photosGrid}>
+        {categoryPhotos.map((photo: any, index: number) => (
+          <Pressable
+            key={`${activeCategory}-${index}`}
+            style={({ pressed }) => [
+              styles.photoContainer,
+              pressed && styles.photoPressed
+            ]}
+            onPress={() => handlePhotoPress(photo)}
+          >
+            <Image source={{ uri: photo.url }} style={styles.photoImage} />
+          </Pressable>
+        ))}
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.backButton,
+            pressed && styles.backButtonPressed
+          ]}
+          onPress={handleBack}
+        >
           <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
+        </Pressable>
         
         <Text style={styles.title}>Your Brand Kit</Text>
         <Text style={styles.subtitle}>
-          Professional photos for your {selectedPackage} package
+          {selectedPackage?.name} package - Professional photos ready to use
         </Text>
       </View>
 
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        style={styles.categoriesContainer}
-        contentContainerStyle={styles.categoriesContent}
-      >
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
         {categories.map((category) => (
-          <TouchableOpacity
+          <Pressable
             key={category.id}
-            style={[
+            style={({ pressed }) => [
               styles.categoryTab,
-              activeCategory === category.id && styles.activeCategoryTab
+              activeCategory === category.id && styles.categoryTabActive,
+              pressed && styles.categoryTabPressed
             ]}
-            onPress={() => setActiveCategory(category.id)}
-            activeOpacity={0.7}
+            onPress={() => handleCategoryPress(category.id)}
           >
+            <Text style={styles.categoryIcon}>{category.icon}</Text>
             <Text style={[
               styles.categoryText,
-              activeCategory === category.id && styles.activeCategoryText
+              activeCategory === category.id && styles.categoryTextActive
             ]}>
               {category.name}
             </Text>
-            <Text style={styles.photoCount}>
-              {category.photos.length}
-            </Text>
-          </TouchableOpacity>
+          </Pressable>
         ))}
       </ScrollView>
 
-      <ScrollView style={styles.photosContainer}>
-        <View style={styles.photosGrid}>
-          {activePhotos.map((photoUrl, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.photoItem}
-              onPress={() => handlePhotoPress(photoUrl)}
-              activeOpacity={0.8}
-            >
-              <Image source={{ uri: photoUrl }} style={styles.photoImage} />
-              <View style={styles.photoOverlay}>
-                <Text style={styles.photoIndex}>{index + 1}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {activePhotos.length === 0 && (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No photos in this category</Text>
-          </View>
-        )}
+      <ScrollView style={styles.photosContainer} contentContainerStyle={styles.photosContent}>
+        {renderPhotos()}
       </ScrollView>
 
-      <View style={styles.actionsContainer}>
-        <TouchableOpacity
-          style={styles.downloadButton}
+      <View style={styles.footer}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.downloadAllButton,
+            pressed && styles.downloadAllButtonPressed
+          ]}
           onPress={handleDownloadAll}
-          activeOpacity={0.8}
         >
-          <LinearGradient
-            colors={['#10B981', '#059669']}
-            style={styles.downloadGradient}
-          >
-            <Text style={styles.downloadText}>
-              Download All Photos
-            </Text>
-          </LinearGradient>
-        </TouchableOpacity>
-
-        <View style={styles.statsContainer}>
-          <Text style={styles.statsText}>
-            Total Photos: {Object.values(photos || {}).flat().length}
-          </Text>
-          <Text style={styles.statsText}>
-            Package: {selectedPackage.charAt(0).toUpperCase() + selectedPackage.slice(1)}
-          </Text>
-        </View>
+          <Text style={styles.downloadAllButtonText}>Download All Photos</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -169,144 +190,131 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   header: {
-    padding: 24,
-    paddingBottom: 16,
+    alignItems: 'center',
+    padding: 20,
+    paddingTop: 40,
   },
   backButton: {
     alignSelf: 'flex-start',
-    marginBottom: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  backButtonPressed: {
+    opacity: 0.7,
   },
   backButtonText: {
     fontSize: 16,
-    color: '#6366F1',
-    fontWeight: '600',
+    color: '#6B7280',
+    fontWeight: '500',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#111827',
-    textAlign: 'center',
+    color: '#1F2937',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: '#6B7280',
     textAlign: 'center',
+    lineHeight: 24,
   },
   categoriesContainer: {
-    maxHeight: 60,
-    marginBottom: 16,
-  },
-  categoriesContent: {
-    paddingHorizontal: 24,
-    gap: 12,
+    paddingHorizontal: 20,
+    marginBottom: 20,
   },
   categoryTab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginRight: 12,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-  activeCategoryTab: {
+  categoryTabActive: {
     backgroundColor: '#6366F1',
+    borderColor: '#6366F1',
+  },
+  categoryTabPressed: {
+    opacity: 0.8,
+  },
+  categoryIcon: {
+    fontSize: 16,
+    marginRight: 8,
   },
   categoryText: {
     fontSize: 14,
     fontWeight: '500',
     color: '#6B7280',
   },
-  activeCategoryText: {
+  categoryTextActive: {
     color: '#ffffff',
-  },
-  photoCount: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#9CA3AF',
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 10,
-    minWidth: 20,
-    textAlign: 'center',
   },
   photosContainer: {
     flex: 1,
-    paddingHorizontal: 24,
+  },
+  photosContent: {
+    padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 16,
+    marginTop: 20,
   },
   photosGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 12,
   },
-  photoItem: {
+  photoContainer: {
     width: '48%',
-    aspectRatio: 1,
+    marginBottom: 16,
     borderRadius: 12,
     overflow: 'hidden',
-    position: 'relative',
+    backgroundColor: '#F9FAFB',
+  },
+  photoPressed: {
+    opacity: 0.8,
   },
   photoImage: {
     width: '100%',
-    height: '100%',
-  },
-  photoOverlay: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    aspectRatio: 1,
     borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
   },
-  photoIndex: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: 'bold',
+  bannerPhoto: {
+    width: '100%',
   },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 48,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#9CA3AF',
-    textAlign: 'center',
-  },
-  actionsContainer: {
-    padding: 24,
-    paddingTop: 16,
-  },
-  downloadButton: {
+  bannerImage: {
+    width: '100%',
+    aspectRatio: 3,
     borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 16,
   },
-  downloadGradient: {
+  footer: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  downloadAllButton: {
+    backgroundColor: '#6366F1',
     paddingVertical: 16,
     paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
   },
-  downloadText: {
+  downloadAllButtonPressed: {
+    opacity: 0.8,
+  },
+  downloadAllButtonText: {
     color: '#ffffff',
     fontSize: 18,
     fontWeight: '600',
-    textAlign: 'center',
-  },
-  statsContainer: {
-    backgroundColor: '#F9FAFB',
-    padding: 16,
-    borderRadius: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  statsText: {
-    fontSize: 14,
-    color: '#6B7280',
-    fontWeight: '500',
   },
 });

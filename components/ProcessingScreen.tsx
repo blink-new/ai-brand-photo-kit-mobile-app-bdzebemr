@@ -1,141 +1,156 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+
+interface Package {
+  id: string;
+  name: string;
+  price: number;
+  features: string[];
+}
 
 interface ProcessingScreenProps {
   photos: string[];
-  selectedPackage: 'starter' | 'professional' | 'premium';
+  selectedPackage: Package | null;
   onComplete: (photos: any) => void;
   onBack: () => void;
 }
 
+const processingSteps = [
+  'Analyzing your photos...',
+  'Generating lifestyle shots...',
+  'Creating desk scenes...',
+  'Producing speaking photos...',
+  'Crafting Zoom mockups...',
+  'Creating LinkedIn banners...',
+  'Designing IG bio visuals...',
+  'Finalizing your brand kit...'
+];
+
 export default function ProcessingScreen({ photos, selectedPackage, onComplete, onBack }: ProcessingScreenProps) {
   const [progress, setProgress] = useState(0);
-  const [currentStep, setCurrentStep] = useState('Analyzing photos...');
-  const [rotateValue] = useState(new Animated.Value(0));
-
-  const steps = [
-    'Analyzing photos...',
-    'Generating lifestyle shots...',
-    'Creating desk scenes...',
-    'Producing speaking images...',
-    'Crafting Zoom backgrounds...',
-    'Creating LinkedIn banners...',
-    'Generating IG visuals...',
-    'Finalizing your brand kit...'
-  ];
+  const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
-    // Start rotation animation
-    const rotateAnimation = Animated.loop(
-      Animated.timing(rotateValue, {
-        toValue: 1,
-        duration: 2000,
-        useNativeDriver: true,
-      })
-    );
-    rotateAnimation.start();
-
-    // Simulate processing steps
-    let stepIndex = 0;
     const interval = setInterval(() => {
-      if (stepIndex < steps.length) {
-        setCurrentStep(steps[stepIndex]);
-        setProgress(((stepIndex + 1) / steps.length) * 100);
-        stepIndex++;
-      } else {
-        clearInterval(interval);
-        // Generate mock photos for testing
-        const mockPhotos = {
-          lifestyle: [
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
-            'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
-          ],
-          desk: [
-            'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400',
-            'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400',
-          ],
-          speaking: [
-            'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400',
-            'https://images.unsplash.com/photo-1556157382-97eda2d62296?w=400',
-          ],
-          zoom: [
-            'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400',
-            'https://images.unsplash.com/photo-1600298881974-6be191ceeda1?w=400',
-          ],
-          bonus: [
-            'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400',
-            'https://images.unsplash.com/photo-1611605698335-8b1569810432?w=400',
-          ]
-        };
-        
-        setTimeout(() => {
-          onComplete(mockPhotos);
-        }, 1000);
-      }
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          // Generate mock photos for demo
+          const mockPhotos = {
+            lifestyle: photos.slice(0, 2).map(p => ({ url: p, category: 'lifestyle' })),
+            desk: photos.slice(2, 3).map(p => ({ url: p, category: 'desk' })),
+            speaking: photos.slice(3, 4).map(p => ({ url: p, category: 'speaking' })),
+            zoom: photos.slice(4, 5).map(p => ({ url: p, category: 'zoom' })),
+            bonus: {
+              linkedin: [{ url: photos[0], category: 'linkedin' }],
+              instagram: photos.slice(0, 3).map(p => ({ url: p, category: 'instagram' }))
+            }
+          };
+          
+          setTimeout(() => {
+            console.log('Processing complete, calling onComplete');
+            onComplete(mockPhotos);
+          }, 1000);
+          
+          return 100;
+        }
+        return prev + 2;
+      });
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, [photos, onComplete]);
+
+  useEffect(() => {
+    const stepInterval = setInterval(() => {
+      setCurrentStep(prev => {
+        if (prev < processingSteps.length - 1) {
+          return prev + 1;
+        }
+        clearInterval(stepInterval);
+        return prev;
+      });
     }, 1500);
 
-    return () => {
-      clearInterval(interval);
-      rotateAnimation.stop();
-    };
+    return () => clearInterval(stepInterval);
   }, []);
 
-  const rotate = rotateValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
+  const handleBack = () => {
+    console.log('Back pressed from processing');
+    Alert.alert(
+      'Cancel Processing?',
+      'Are you sure you want to go back? Your progress will be lost.',
+      [
+        { text: 'Continue Processing', style: 'cancel' },
+        { text: 'Go Back', onPress: onBack }
+      ]
+    );
+  };
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+      <View style={styles.header}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.backButton,
+            pressed && styles.backButtonPressed
+          ]}
+          onPress={handleBack}
+        >
           <Text style={styles.backButtonText}>← Back</Text>
-        </TouchableOpacity>
-
+        </Pressable>
+        
         <Text style={styles.title}>Creating Your Brand Kit</Text>
         <Text style={styles.subtitle}>
-          Our AI is transforming your photos into professional brand images
+          AI is generating your {selectedPackage?.name} brand photo kit
         </Text>
+      </View>
 
-        <View style={styles.progressContainer}>
-          <Animated.View style={[styles.progressCircle, { transform: [{ rotate }] }]}>
-            <LinearGradient
-              colors={['#6366F1', '#8B5CF6', '#F59E0B']}
-              style={styles.gradientCircle}
-            >
-              <View style={styles.innerCircle}>
-                <Text style={styles.progressText}>{Math.round(progress)}%</Text>
-              </View>
-            </LinearGradient>
-          </Animated.View>
+      <View style={styles.progressContainer}>
+        <View style={styles.progressCircle}>
+          <LinearGradient
+            colors={['#6366F1', '#8B5CF6', '#EC4899']}
+            style={[styles.progressRing, { transform: [{ rotate: `${progress * 3.6}deg` }] }]}
+          >
+            <View style={styles.progressInner}>
+              <Text style={styles.progressText}>{Math.round(progress)}%</Text>
+            </View>
+          </LinearGradient>
         </View>
+      </View>
 
-        <Text style={styles.stepText}>{currentStep}</Text>
-
-        <View style={styles.stepsContainer}>
-          {steps.map((step, index) => (
-            <View key={index} style={styles.stepItem}>
+      <View style={styles.stepContainer}>
+        <Text style={styles.currentStep}>{processingSteps[currentStep]}</Text>
+        
+        <View style={styles.stepsList}>
+          {processingSteps.map((step, index) => (
+            <View key={index} style={styles.stepRow}>
               <View style={[
                 styles.stepIndicator,
-                { backgroundColor: index <= (progress / 100) * steps.length - 1 ? '#10B981' : '#E5E7EB' }
-              ]} />
+                index <= currentStep && styles.stepIndicatorActive
+              ]}>
+                {index < currentStep ? (
+                  <Text style={styles.stepCheckmark}>✓</Text>
+                ) : (
+                  <Text style={styles.stepNumber}>{index + 1}</Text>
+                )}
+              </View>
               <Text style={[
-                styles.stepLabel,
-                { color: index <= (progress / 100) * steps.length - 1 ? '#374151' : '#9CA3AF' }
+                styles.stepText,
+                index <= currentStep && styles.stepTextActive
               ]}>
                 {step}
               </Text>
             </View>
           ))}
         </View>
+      </View>
 
-        <View style={styles.infoContainer}>
-          <Text style={styles.infoText}>
-            This usually takes 2-3 minutes. We're creating high-quality professional photos 
-            tailored specifically for your {selectedPackage} package.
-          </Text>
-        </View>
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>
+          This usually takes 2-3 minutes. Please don't close the app.
+        </Text>
       </View>
     </View>
   );
@@ -145,49 +160,59 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
+    padding: 20,
   },
-  content: {
-    flex: 1,
-    padding: 24,
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
+    paddingTop: 40,
   },
   backButton: {
     alignSelf: 'flex-start',
-    marginBottom: 24,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  backButtonPressed: {
+    opacity: 0.7,
   },
   backButtonText: {
     fontSize: 16,
-    color: '#6366F1',
-    fontWeight: '600',
+    color: '#6B7280',
+    fontWeight: '500',
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#111827',
-    textAlign: 'center',
+    color: '#1F2937',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     color: '#6B7280',
     textAlign: 'center',
-    marginBottom: 48,
+    lineHeight: 24,
   },
   progressContainer: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 40,
   },
   progressCircle: {
     width: 120,
     height: 120,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  gradientCircle: {
+  progressRing: {
     width: 120,
     height: 120,
     borderRadius: 60,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  innerCircle: {
+  progressInner: {
     width: 100,
     height: 100,
     borderRadius: 50,
@@ -200,39 +225,61 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#6366F1',
   },
-  stepText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#374151',
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  stepsContainer: {
-    marginBottom: 32,
-  },
-  stepItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  stepIndicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 12,
-  },
-  stepLabel: {
-    fontSize: 14,
+  stepContainer: {
     flex: 1,
   },
-  infoContainer: {
-    backgroundColor: '#F0F9FF',
-    padding: 16,
-    borderRadius: 12,
+  currentStep: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#6366F1',
+    textAlign: 'center',
+    marginBottom: 30,
   },
-  infoText: {
+  stepsList: {
+    gap: 16,
+  },
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  stepIndicator: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  stepIndicatorActive: {
+    backgroundColor: '#6366F1',
+  },
+  stepNumber: {
     fontSize: 14,
-    color: '#1E40AF',
+    fontWeight: '600',
+    color: '#9CA3AF',
+  },
+  stepCheckmark: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  stepText: {
+    fontSize: 16,
+    color: '#9CA3AF',
+    flex: 1,
+  },
+  stepTextActive: {
+    color: '#1F2937',
+    fontWeight: '500',
+  },
+  footer: {
+    alignItems: 'center',
+    paddingTop: 20,
+  },
+  footerText: {
+    fontSize: 14,
+    color: '#6B7280',
     textAlign: 'center',
     lineHeight: 20,
   },
