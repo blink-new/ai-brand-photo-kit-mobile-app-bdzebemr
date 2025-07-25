@@ -1,50 +1,73 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet, SafeAreaView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable, Alert, StyleSheet, SafeAreaView } from 'react-native';
 
 export default function App() {
+  const [counter, setCounter] = useState(0);
+  const [lastPressed, setLastPressed] = useState('None');
+
   const handlePress = (packageName: string) => {
     console.log('Button pressed:', packageName);
+    setLastPressed(packageName);
+    setCounter(prev => prev + 1);
     Alert.alert('Button Pressed!', `You pressed ${packageName}`);
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Button Test</Text>
+        <Text style={styles.title}>Button Test App</Text>
+        <Text style={styles.subtitle}>Counter: {counter}</Text>
+        <Text style={styles.subtitle}>Last Pressed: {lastPressed}</Text>
         
-        {/* Simple test button first */}
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: '#10B981' }]}
+        {/* Simple test button using Pressable */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.button,
+            { backgroundColor: pressed ? '#059669' : '#10B981' }
+          ]}
           onPress={() => handlePress('Test Button')}
-          activeOpacity={0.7}
         >
           <Text style={styles.buttonText}>Simple Test Button</Text>
-        </TouchableOpacity>
+        </Pressable>
         
-        {/* Package selection buttons */}
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: '#6366F1' }]}
+        {/* Package selection buttons using Pressable */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.button,
+            { backgroundColor: pressed ? '#4F46E5' : '#6366F1' }
+          ]}
           onPress={() => handlePress('Starter Package')}
-          activeOpacity={0.7}
         >
           <Text style={styles.buttonText}>Starter - $39</Text>
-        </TouchableOpacity>
+        </Pressable>
         
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: '#F59E0B' }]}
+        <Pressable
+          style={({ pressed }) => [
+            styles.button,
+            { backgroundColor: pressed ? '#D97706' : '#F59E0B' }
+          ]}
           onPress={() => handlePress('Professional Package')}
-          activeOpacity={0.7}
         >
           <Text style={styles.buttonText}>Professional - $69</Text>
-        </TouchableOpacity>
+        </Pressable>
         
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: '#EF4444' }]}
+        <Pressable
+          style={({ pressed }) => [
+            styles.button,
+            { backgroundColor: pressed ? '#DC2626' : '#EF4444' }
+          ]}
           onPress={() => handlePress('Premium Package')}
-          activeOpacity={0.7}
         >
           <Text style={styles.buttonText}>Premium - $99</Text>
-        </TouchableOpacity>
+        </Pressable>
+
+        {/* Alternative button using onTouchEnd */}
+        <View
+          style={[styles.button, { backgroundColor: '#8B5CF6' }]}
+          onTouchEnd={() => handlePress('Touch End Button')}
+        >
+          <Text style={styles.buttonText}>Touch End Test</Text>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -65,7 +88,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#111827',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 8,
   },
   button: {
     paddingVertical: 16,
