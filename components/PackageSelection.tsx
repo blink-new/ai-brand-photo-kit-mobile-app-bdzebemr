@@ -1,270 +1,132 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Check, Star, Zap, Crown } from 'lucide-react-native';
 
 interface PackageSelectionProps {
-  onPackageSelect: (packageId: string) => void;
+  onSelectPackage: (packageType: 'starter' | 'professional' | 'premium') => void;
 }
 
-const packages = [
-  {
-    id: 'starter',
-    name: 'Starter Kit',
-    price: '$39',
-    icon: Zap,
-    color: '#10B981',
-    features: [
-      '5 AI-generated brand photos',
-      'Lifestyle & desk scenes',
-      '2 LinkedIn banners',
-      'Basic IG bio visuals',
-      'HD downloads'
-    ],
-    popular: false
-  },
-  {
-    id: 'professional',
-    name: 'Professional Kit',
-    price: '$69',
-    icon: Star,
-    color: '#6366F1',
-    features: [
-      '10 AI-generated brand photos',
-      'All photo categories',
-      '5 LinkedIn banners',
-      'Premium IG bio visuals',
-      'Zoom call mockups',
-      'HD + 4K downloads'
-    ],
-    popular: true
-  },
-  {
-    id: 'premium',
-    name: 'Premium Kit',
-    price: '$99',
-    icon: Crown,
-    color: '#F59E0B',
-    features: [
-      '15 AI-generated brand photos',
-      'All photo categories',
-      '10 LinkedIn banners',
-      'Premium IG + Story visuals',
-      'Speaking event photos',
-      '4K downloads + raw files',
-      'Priority processing'
-    ],
-    popular: false
-  }
-];
+export default function PackageSelection({ onSelectPackage }: PackageSelectionProps) {
+  const packages = [
+    {
+      id: 'starter',
+      name: 'Starter',
+      price: '$39',
+      features: [
+        '5 Professional Photos',
+        'Lifestyle & Desk Scenes',
+        'Basic LinkedIn Banner',
+        'Standard Resolution'
+      ],
+      gradient: ['#6366F1', '#8B5CF6'],
+      popular: false
+    },
+    {
+      id: 'professional',
+      name: 'Professional',
+      price: '$69',
+      features: [
+        '10 Professional Photos',
+        'All 4 Categories',
+        'LinkedIn + IG Banners',
+        'High Resolution',
+        'Bonus Zoom Backgrounds'
+      ],
+      gradient: ['#F59E0B', '#EF4444'],
+      popular: true
+    },
+    {
+      id: 'premium',
+      name: 'Premium',
+      price: '$99',
+      features: [
+        '15 Professional Photos',
+        'All Categories + Extras',
+        'Complete Social Kit',
+        'Ultra High Resolution',
+        'Custom Backgrounds',
+        'Priority Processing'
+      ],
+      gradient: ['#10B981', '#059669'],
+      popular: false
+    }
+  ];
 
-export function PackageSelection({ onPackageSelect }: PackageSelectionProps) {
+  const handlePackagePress = (packageId: string) => {
+    console.log('Package button pressed:', packageId);
+    Alert.alert('Package Selected', `You selected ${packageId}`, [
+      {
+        text: 'Continue',
+        onPress: () => onSelectPackage(packageId as any)
+      },
+      {
+        text: 'Cancel',
+        style: 'cancel'
+      }
+    ]);
+  };
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <Animated.View 
-        style={styles.header}
-        entering={FadeInDown.duration(600)}
-      >
-        <Text style={styles.title}>AI Brand Photo Kit</Text>
-        <Text style={styles.subtitle}>
-          Transform your candid photos into professional brand assets
+    <ScrollView className="flex-1 bg-white">
+      <View className="px-6 pt-8 pb-6">
+        <Text className="text-3xl font-bold text-gray-900 text-center mb-2">
+          AI Brand Photo Kit
         </Text>
-      </Animated.View>
+        <Text className="text-lg text-gray-600 text-center mb-8">
+          Transform your candid photos into professional brand images
+        </Text>
 
-      <View style={styles.packagesContainer}>
-        {packages.map((pkg, index) => (
-          <Animated.View
-            key={pkg.id}
-            entering={FadeInDown.duration(600).delay(index * 100)}
-          >
-            <View
-              style={[
-                styles.packageCard,
-                pkg.popular && styles.popularCard
-              ]}
-            >
+        <View className="space-y-4">
+          {packages.map((pkg) => (
+            <View key={pkg.id} className="relative">
               {pkg.popular && (
-                <View style={styles.popularBadge}>
-                  <Text style={styles.popularText}>MOST POPULAR</Text>
+                <View className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                  <View className="bg-orange-500 px-4 py-1 rounded-full">
+                    <Text className="text-white text-sm font-semibold">Most Popular</Text>
+                  </View>
                 </View>
               )}
               
-              <View style={styles.packageHeader}>
-                <View style={[styles.iconContainer, { backgroundColor: pkg.color + '20' }]}>
-                  <pkg.icon size={24} color={pkg.color} />
+              <View className="bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-sm">
+                <View className="flex-row justify-between items-center mb-4">
+                  <Text className="text-2xl font-bold text-gray-900">{pkg.name}</Text>
+                  <Text className="text-3xl font-bold text-indigo-600">{pkg.price}</Text>
                 </View>
-                <View style={styles.packageInfo}>
-                  <Text style={styles.packageName}>{pkg.name}</Text>
-                  <Text style={styles.packagePrice}>{pkg.price}</Text>
+
+                <View className="mb-6">
+                  {pkg.features.map((feature, index) => (
+                    <View key={index} className="flex-row items-center mb-2">
+                      <View className="w-2 h-2 bg-green-500 rounded-full mr-3" />
+                      <Text className="text-gray-700 flex-1">{feature}</Text>
+                    </View>
+                  ))}
                 </View>
-              </View>
 
-              <View style={styles.featuresContainer}>
-                {pkg.features.map((feature, idx) => (
-                  <View key={idx} style={styles.featureRow}>
-                    <Check size={16} color="#10B981" />
-                    <Text style={styles.featureText}>{feature}</Text>
-                  </View>
-                ))}
-              </View>
-
-              <TouchableOpacity
-                style={styles.selectButton}
-                onPress={() => {
-                  console.log('Package selected:', pkg.id);
-                  onPackageSelect(pkg.id);
-                }}
-                activeOpacity={0.8}
-              >
-                <LinearGradient
-                  colors={[pkg.color, pkg.color + 'CC']}
-                  style={styles.selectButtonGradient}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => handlePackagePress(pkg.id)}
+                  className="rounded-xl overflow-hidden"
                 >
-                  <Text style={styles.selectButtonText}>Choose {pkg.name}</Text>
-                </LinearGradient>
-              </TouchableOpacity>
+                  <LinearGradient
+                    colors={pkg.gradient}
+                    className="py-4 px-6"
+                  >
+                    <Text className="text-white text-lg font-semibold text-center">
+                      Select {pkg.name}
+                    </Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             </View>
-          </Animated.View>
-        ))}
-      </View>
+          ))}
+        </View>
 
-      <Animated.View 
-        style={styles.footer}
-        entering={FadeInDown.duration(600).delay(400)}
-      >
-        <Text style={styles.footerText}>
-          Perfect for coaches, freelancers & content creators
-        </Text>
-      </Animated.View>
+        <View className="mt-8 bg-gray-50 rounded-xl p-4">
+          <Text className="text-center text-gray-600 text-sm">
+            Perfect for coaches, freelancers, and content creators who need professional photos for their brand
+          </Text>
+        </View>
+      </View>
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    paddingHorizontal: 24,
-    paddingTop: 40,
-    paddingBottom: 32,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#1F2937',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  packagesContainer: {
-    paddingHorizontal: 20,
-    gap: 16,
-  },
-  packageCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 24,
-    borderWidth: 2,
-    borderColor: '#F3F4F6',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-    position: 'relative',
-  },
-  popularCard: {
-    borderColor: '#6366F1',
-    transform: [{ scale: 1.02 }],
-  },
-  popularBadge: {
-    position: 'absolute',
-    top: -8,
-    left: 24,
-    right: 24,
-    backgroundColor: '#6366F1',
-    borderRadius: 12,
-    paddingVertical: 6,
-    alignItems: 'center',
-  },
-  popularText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  packageHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-    marginTop: 8,
-  },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  packageInfo: {
-    flex: 1,
-  },
-  packageName: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  packagePrice: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#6366F1',
-  },
-  featuresContainer: {
-    marginBottom: 24,
-    gap: 12,
-  },
-  featureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  featureText: {
-    fontSize: 15,
-    color: '#4B5563',
-    flex: 1,
-  },
-  selectButton: {
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  selectButtonGradient: {
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  selectButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  footer: {
-    paddingHorizontal: 24,
-    paddingVertical: 32,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    textAlign: 'center',
-  },
-});

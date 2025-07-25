@@ -1,132 +1,95 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+import { View, Text, SafeAreaView, StatusBar } from 'react-native';
+import PackageSelection from '../components/PackageSelection';
+import PhotoUpload from '../components/PhotoUpload';
+import ProcessingScreen from '../components/ProcessingScreen';
+import BrandKitGallery from '../components/BrandKitGallery';
 
-export default function Home() {
-  const [currentScreen, setCurrentScreen] = useState('test');
-  const [counter, setCounter] = useState(0);
+type Screen = 'package' | 'upload' | 'processing' | 'gallery';
+type Package = 'starter' | 'professional' | 'premium';
 
-  console.log('App render - Current screen:', currentScreen, 'Counter:', counter);
+export default function App() {
+  const [currentScreen, setCurrentScreen] = useState<Screen>('package');
+  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
+  const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
+  const [generatedPhotos, setGeneratedPhotos] = useState<any>(null);
 
-  const handleTestPress = () => {
-    console.log('TEST BUTTON PRESSED!');
-    setCounter(prev => prev + 1);
-    Alert.alert('Success!', `Button pressed ${counter + 1} times`);
+  console.log('App render - currentScreen:', currentScreen, 'selectedPackage:', selectedPackage);
+
+  const handlePackageSelect = (packageType: Package) => {
+    console.log('Package selected:', packageType);
+    setSelectedPackage(packageType);
+    setCurrentScreen('upload');
   };
 
-  const handleNavigatePress = () => {
-    console.log('NAVIGATE BUTTON PRESSED!');
-    setCurrentScreen(currentScreen === 'test' ? 'second' : 'test');
+  const handlePhotosUploaded = (photos: string[]) => {
+    console.log('Photos uploaded:', photos.length);
+    setUploadedPhotos(photos);
+    setCurrentScreen('processing');
   };
 
-  if (currentScreen === 'second') {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="dark" />
-        <View style={styles.content}>
-          <Text style={styles.title}>Second Screen</Text>
-          <Text style={styles.subtitle}>Navigation is working!</Text>
-          
-          <TouchableOpacity 
-            style={styles.button}
-            onPress={handleNavigatePress}
-          >
-            <Text style={styles.buttonText}>Go Back</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  const handleProcessingComplete = (photos: any) => {
+    console.log('Processing complete');
+    setGeneratedPhotos(photos);
+    setCurrentScreen('gallery');
+  };
+
+  const handleBackToPackages = () => {
+    console.log('Back to packages');
+    setCurrentScreen('package');
+    setSelectedPackage(null);
+  };
+
+  const handleBackToUpload = () => {
+    console.log('Back to upload');
+    setCurrentScreen('upload');
+  };
+
+  const handleBackToGallery = () => {
+    console.log('Back to gallery');
+    setCurrentScreen('gallery');
+  };
+
+  const renderScreen = () => {
+    switch (currentScreen) {
+      case 'package':
+        return <PackageSelection onSelectPackage={handlePackageSelect} />;
+      case 'upload':
+        return (
+          <PhotoUpload
+            selectedPackage={selectedPackage!}
+            onPhotosUploaded={handlePhotosUploaded}
+            onBack={handleBackToPackages}
+          />
+        );
+      case 'processing':
+        return (
+          <ProcessingScreen
+            photos={uploadedPhotos}
+            selectedPackage={selectedPackage!}
+            onComplete={handleProcessingComplete}
+            onBack={handleBackToUpload}
+          />
+        );
+      case 'gallery':
+        return (
+          <BrandKitGallery
+            photos={generatedPhotos}
+            selectedPackage={selectedPackage!}
+            onBack={handleBackToGallery}
+          />
+        );
+      default:
+        return <PackageSelection onSelectPackage={handlePackageSelect} />;
+    }
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
-      <View style={styles.content}>
-        <Text style={styles.title}>Touch Test</Text>
-        <Text style={styles.subtitle}>Testing button responsiveness</Text>
-        <Text style={styles.counter}>Button pressed: {counter} times</Text>
-        
-        <TouchableOpacity 
-          style={styles.button}
-          onPress={handleTestPress}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.buttonText}>Test Button</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={[styles.button, styles.secondaryButton]}
-          onPress={handleNavigatePress}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.buttonText}>Navigate Test</Text>
-        </TouchableOpacity>
-
-        <View style={styles.instructions}>
-          <Text style={styles.instructionText}>
-            If these buttons work, we'll add back the full app features step by step.
-          </Text>
-        </View>
+    <SafeAreaView className="flex-1 bg-white">
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <View className="flex-1">
+        {renderScreen()}
       </View>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#1F2937',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  counter: {
-    fontSize: 18,
-    color: '#6366F1',
-    fontWeight: '600',
-    marginBottom: 32,
-  },
-  button: {
-    backgroundColor: '#6366F1',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    minWidth: 200,
-    alignItems: 'center',
-  },
-  secondaryButton: {
-    backgroundColor: '#10B981',
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  instructions: {
-    marginTop: 32,
-    paddingHorizontal: 16,
-  },
-  instructionText: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-});
