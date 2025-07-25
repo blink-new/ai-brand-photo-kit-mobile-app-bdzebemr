@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Image, Alert, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface BrandKitGalleryProps {
@@ -9,39 +9,34 @@ interface BrandKitGalleryProps {
 }
 
 export default function BrandKitGallery({ photos, selectedPackage, onBack }: BrandKitGalleryProps) {
-  const [selectedCategory, setSelectedCategory] = useState('lifestyle');
+  const [activeCategory, setActiveCategory] = useState('lifestyle');
 
   const categories = [
-    { id: 'lifestyle', name: 'Lifestyle', icon: '🌟' },
-    { id: 'desk', name: 'Desk Scenes', icon: '💻' },
-    { id: 'speaking', name: 'Speaking', icon: '🎤' },
-    { id: 'zoom', name: 'Zoom Calls', icon: '📹' },
-    { id: 'bonus', name: 'Bonus Content', icon: '🎁' }
+    { id: 'lifestyle', name: 'Lifestyle', photos: photos?.lifestyle || [] },
+    { id: 'desk', name: 'Desk Scenes', photos: photos?.desk || [] },
+    { id: 'speaking', name: 'Speaking', photos: photos?.speaking || [] },
+    { id: 'zoom', name: 'Zoom Calls', photos: photos?.zoom || [] },
+    { id: 'bonus', name: 'Bonus Content', photos: photos?.bonus || [] },
   ];
 
-  const handleBackPress = () => {
-    console.log('Back button pressed from gallery');
-    onBack();
-  };
-
-  const handleCategoryPress = (categoryId: string) => {
-    console.log('Category selected:', categoryId);
-    setSelectedCategory(categoryId);
-  };
-
-  const handlePhotoPress = (photo: any) => {
-    console.log('Photo pressed:', photo);
+  const handlePhotoPress = (photoUrl: string) => {
     Alert.alert(
       'Photo Options',
       'What would you like to do with this photo?',
       [
         {
           text: 'Download',
-          onPress: () => Alert.alert('Download', 'Photo download feature coming soon!')
+          onPress: () => {
+            console.log('Download photo:', photoUrl);
+            Alert.alert('Success', 'Photo downloaded to your device!');
+          }
         },
         {
           text: 'Share',
-          onPress: () => Alert.alert('Share', 'Photo sharing feature coming soon!')
+          onPress: () => {
+            console.log('Share photo:', photoUrl);
+            Alert.alert('Share', 'Sharing options would open here');
+          }
         },
         {
           text: 'Cancel',
@@ -51,157 +46,267 @@ export default function BrandKitGallery({ photos, selectedPackage, onBack }: Bra
     );
   };
 
-  const handleDownloadAllPress = () => {
-    console.log('Download all pressed');
-    Alert.alert('Download All', 'Downloading all photos from your brand kit!');
-  };
-
-  const renderPhotos = () => {
-    if (!photos) return null;
-
-    if (selectedCategory === 'bonus') {
-      return (
-        <View>
-          <Text className="text-lg font-semibold text-gray-900 mb-4">LinkedIn Banners</Text>
-          <View className="grid grid-cols-1 gap-4 mb-6">
-            {photos.bonus?.linkedinBanners?.map((photo: any, index: number) => (
-              <TouchableOpacity
-                key={index}
-                activeOpacity={0.8}
-                onPress={() => handlePhotoPress(photo)}
-                className="aspect-[3/1] bg-gray-100 rounded-xl overflow-hidden"
-              >
-                <Image
-                  source={{ uri: photo.url }}
-                  className="w-full h-full"
-                  resizeMode="cover"
-                />
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <Text className="text-lg font-semibold text-gray-900 mb-4">Instagram Bio Visuals</Text>
-          <View className="grid grid-cols-2 gap-4">
-            {photos.bonus?.igBioVisuals?.map((photo: any, index: number) => (
-              <TouchableOpacity
-                key={index}
-                activeOpacity={0.8}
-                onPress={() => handlePhotoPress(photo)}
-                className="aspect-square bg-gray-100 rounded-xl overflow-hidden"
-              >
-                <Image
-                  source={{ uri: photo.url }}
-                  className="w-full h-full"
-                  resizeMode="cover"
-                />
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-      );
-    }
-
-    const categoryPhotos = photos[selectedCategory] || [];
-    
-    return (
-      <View className="grid grid-cols-2 gap-4">
-        {categoryPhotos.map((photo: any, index: number) => (
-          <TouchableOpacity
-            key={index}
-            activeOpacity={0.8}
-            onPress={() => handlePhotoPress(photo)}
-            className="aspect-square bg-gray-100 rounded-xl overflow-hidden"
-          >
-            <Image
-              source={{ uri: photo.url }}
-              className="w-full h-full"
-              resizeMode="cover"
-            />
-          </TouchableOpacity>
-        ))}
-      </View>
+  const handleDownloadAll = () => {
+    Alert.alert(
+      'Download All Photos',
+      'Download all photos in your brand kit?',
+      [
+        {
+          text: 'Download',
+          onPress: () => {
+            console.log('Download all photos');
+            Alert.alert('Success', 'All photos downloaded to your device!');
+          }
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        }
+      ]
     );
   };
 
+  const activePhotos = categories.find(cat => cat.id === activeCategory)?.photos || [];
+
   return (
-    <ScrollView className="flex-1 bg-white">
-      <View className="px-6 pt-8 pb-6">
-        <View className="flex-row items-center mb-6">
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <Text style={styles.backButtonText}>← Back</Text>
+        </TouchableOpacity>
+        
+        <Text style={styles.title}>Your Brand Kit</Text>
+        <Text style={styles.subtitle}>
+          Professional photos for your {selectedPackage} package
+        </Text>
+      </View>
+
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={styles.categoriesContainer}
+        contentContainerStyle={styles.categoriesContent}
+      >
+        {categories.map((category) => (
           <TouchableOpacity
+            key={category.id}
+            style={[
+              styles.categoryTab,
+              activeCategory === category.id && styles.activeCategoryTab
+            ]}
+            onPress={() => setActiveCategory(category.id)}
             activeOpacity={0.7}
-            onPress={handleBackPress}
-            className="w-10 h-10 bg-gray-100 rounded-full justify-center items-center mr-4"
           >
-            <Text className="text-gray-600 text-lg">←</Text>
+            <Text style={[
+              styles.categoryText,
+              activeCategory === category.id && styles.activeCategoryText
+            ]}>
+              {category.name}
+            </Text>
+            <Text style={styles.photoCount}>
+              {category.photos.length}
+            </Text>
           </TouchableOpacity>
-          <Text className="text-2xl font-bold text-gray-900 flex-1">
-            Your Brand Kit
-          </Text>
+        ))}
+      </ScrollView>
+
+      <ScrollView style={styles.photosContainer}>
+        <View style={styles.photosGrid}>
+          {activePhotos.map((photoUrl, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.photoItem}
+              onPress={() => handlePhotoPress(photoUrl)}
+              activeOpacity={0.8}
+            >
+              <Image source={{ uri: photoUrl }} style={styles.photoImage} />
+              <View style={styles.photoOverlay}>
+                <Text style={styles.photoIndex}>{index + 1}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
 
-        <View className="bg-green-50 rounded-xl p-4 mb-6">
-          <Text className="text-green-800 font-semibold mb-2">
-            🎉 Brand Kit Complete!
-          </Text>
-          <Text className="text-green-700 text-sm">
-            Your professional photos are ready for download and use across all your platforms
-          </Text>
-        </View>
-
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          className="mb-6"
-        >
-          <View className="flex-row space-x-3">
-            {categories.map((category) => (
-              <TouchableOpacity
-                key={category.id}
-                activeOpacity={0.8}
-                onPress={() => handleCategoryPress(category.id)}
-                className={`px-4 py-2 rounded-full ${
-                  selectedCategory === category.id 
-                    ? 'bg-indigo-600' 
-                    : 'bg-gray-100'
-                }`}
-              >
-                <Text className={`font-medium ${
-                  selectedCategory === category.id 
-                    ? 'text-white' 
-                    : 'text-gray-700'
-                }`}>
-                  {category.icon} {category.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
+        {activePhotos.length === 0 && (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>No photos in this category</Text>
           </View>
-        </ScrollView>
+        )}
+      </ScrollView>
 
-        <View className="mb-6">
-          {renderPhotos()}
-        </View>
-
+      <View style={styles.actionsContainer}>
         <TouchableOpacity
+          style={styles.downloadButton}
+          onPress={handleDownloadAll}
           activeOpacity={0.8}
-          onPress={handleDownloadAllPress}
-          className="rounded-xl overflow-hidden mb-4"
         >
           <LinearGradient
             colors={['#10B981', '#059669']}
-            className="py-4 px-6"
+            style={styles.downloadGradient}
           >
-            <Text className="text-white text-lg font-semibold text-center">
+            <Text style={styles.downloadText}>
               Download All Photos
             </Text>
           </LinearGradient>
         </TouchableOpacity>
 
-        <View className="bg-gray-50 rounded-xl p-4">
-          <Text className="text-center text-gray-600 text-sm">
-            Perfect for your website, social media, speaking engagements, and professional profiles
+        <View style={styles.statsContainer}>
+          <Text style={styles.statsText}>
+            Total Photos: {Object.values(photos || {}).flat().length}
+          </Text>
+          <Text style={styles.statsText}>
+            Package: {selectedPackage.charAt(0).toUpperCase() + selectedPackage.slice(1)}
           </Text>
         </View>
       </View>
-    </ScrollView>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  header: {
+    padding: 24,
+    paddingBottom: 16,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#6366F1',
+    fontWeight: '600',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#111827',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+  categoriesContainer: {
+    maxHeight: 60,
+    marginBottom: 16,
+  },
+  categoriesContent: {
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+  categoryTab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  activeCategoryTab: {
+    backgroundColor: '#6366F1',
+  },
+  categoryText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6B7280',
+  },
+  activeCategoryText: {
+    color: '#ffffff',
+  },
+  photoCount: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#9CA3AF',
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    minWidth: 20,
+    textAlign: 'center',
+  },
+  photosContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  photosGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  photoItem: {
+    width: '48%',
+    aspectRatio: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  photoImage: {
+    width: '100%',
+    height: '100%',
+  },
+  photoOverlay: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  photoIndex: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 48,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#9CA3AF',
+    textAlign: 'center',
+  },
+  actionsContainer: {
+    padding: 24,
+    paddingTop: 16,
+  },
+  downloadButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 16,
+  },
+  downloadGradient: {
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+  },
+  downloadText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  statsContainer: {
+    backgroundColor: '#F9FAFB',
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  statsText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+});

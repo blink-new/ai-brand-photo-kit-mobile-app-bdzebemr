@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface PackageSelectionProps {
@@ -67,37 +67,37 @@ export default function PackageSelection({ onSelectPackage }: PackageSelectionPr
   };
 
   return (
-    <ScrollView className="flex-1 bg-white">
-      <View className="px-6 pt-8 pb-6">
-        <Text className="text-3xl font-bold text-gray-900 text-center mb-2">
+    <ScrollView style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.title}>
           AI Brand Photo Kit
         </Text>
-        <Text className="text-lg text-gray-600 text-center mb-8">
+        <Text style={styles.subtitle}>
           Transform your candid photos into professional brand images
         </Text>
 
-        <View className="space-y-4">
+        <View style={styles.packagesContainer}>
           {packages.map((pkg) => (
-            <View key={pkg.id} className="relative">
+            <View key={pkg.id} style={styles.packageWrapper}>
               {pkg.popular && (
-                <View className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-                  <View className="bg-orange-500 px-4 py-1 rounded-full">
-                    <Text className="text-white text-sm font-semibold">Most Popular</Text>
+                <View style={styles.popularBadge}>
+                  <View style={styles.popularBadgeInner}>
+                    <Text style={styles.popularText}>Most Popular</Text>
                   </View>
                 </View>
               )}
               
-              <View className="bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-sm">
-                <View className="flex-row justify-between items-center mb-4">
-                  <Text className="text-2xl font-bold text-gray-900">{pkg.name}</Text>
-                  <Text className="text-3xl font-bold text-indigo-600">{pkg.price}</Text>
+              <View style={styles.packageCard}>
+                <View style={styles.packageHeader}>
+                  <Text style={styles.packageName}>{pkg.name}</Text>
+                  <Text style={styles.packagePrice}>{pkg.price}</Text>
                 </View>
 
-                <View className="mb-6">
+                <View style={styles.featuresContainer}>
                   {pkg.features.map((feature, index) => (
-                    <View key={index} className="flex-row items-center mb-2">
-                      <View className="w-2 h-2 bg-green-500 rounded-full mr-3" />
-                      <Text className="text-gray-700 flex-1">{feature}</Text>
+                    <View key={index} style={styles.featureRow}>
+                      <View style={styles.featureBullet} />
+                      <Text style={styles.featureText}>{feature}</Text>
                     </View>
                   ))}
                 </View>
@@ -105,13 +105,13 @@ export default function PackageSelection({ onSelectPackage }: PackageSelectionPr
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => handlePackagePress(pkg.id)}
-                  className="rounded-xl overflow-hidden"
+                  style={styles.selectButton}
                 >
                   <LinearGradient
                     colors={pkg.gradient}
-                    className="py-4 px-6"
+                    style={styles.gradientButton}
                   >
-                    <Text className="text-white text-lg font-semibold text-center">
+                    <Text style={styles.buttonText}>
                       Select {pkg.name}
                     </Text>
                   </LinearGradient>
@@ -121,8 +121,8 @@ export default function PackageSelection({ onSelectPackage }: PackageSelectionPr
           ))}
         </View>
 
-        <View className="mt-8 bg-gray-50 rounded-xl p-4">
-          <Text className="text-center text-gray-600 text-sm">
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
             Perfect for coaches, freelancers, and content creators who need professional photos for their brand
           </Text>
         </View>
@@ -130,3 +130,129 @@ export default function PackageSelection({ onSelectPackage }: PackageSelectionPr
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  content: {
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 24,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#111827',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 18,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  packagesContainer: {
+    gap: 16,
+  },
+  packageWrapper: {
+    position: 'relative',
+    marginBottom: 16,
+  },
+  popularBadge: {
+    position: 'absolute',
+    top: -12,
+    left: '50%',
+    marginLeft: -50,
+    zIndex: 10,
+  },
+  popularBadgeInner: {
+    backgroundColor: '#F97316',
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  popularText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  packageCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  packageHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  packageName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  packagePrice: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#6366F1',
+  },
+  featuresContainer: {
+    marginBottom: 24,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  featureBullet: {
+    width: 8,
+    height: 8,
+    backgroundColor: '#10B981',
+    borderRadius: 4,
+    marginRight: 12,
+  },
+  featureText: {
+    color: '#374151',
+    flex: 1,
+    fontSize: 16,
+  },
+  selectButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  gradientButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  footer: {
+    marginTop: 32,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 16,
+  },
+  footerText: {
+    textAlign: 'center',
+    color: '#6B7280',
+    fontSize: 14,
+  },
+});

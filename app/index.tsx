@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, SafeAreaView, StatusBar, StyleSheet } from 'react-native';
 import PackageSelection from '../components/PackageSelection';
 import PhotoUpload from '../components/PhotoUpload';
 import ProcessingScreen from '../components/ProcessingScreen';
@@ -85,11 +85,21 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      <View className="flex-1">
+      <View style={styles.content}>
         {renderScreen()}
       </View>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  content: {
+    flex: 1,
+  },
+});

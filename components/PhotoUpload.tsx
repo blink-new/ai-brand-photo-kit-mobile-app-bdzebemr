@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert, StyleSheet, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -12,13 +12,8 @@ interface PhotoUploadProps {
 export default function PhotoUpload({ selectedPackage, onPhotosUploaded, onBack }: PhotoUploadProps) {
   const [photos, setPhotos] = useState<string[]>([]);
 
-  const handleBackPress = () => {
-    console.log('Back button pressed');
-    onBack();
-  };
-
-  const handlePhotoSlotPress = async (index: number) => {
-    console.log('Photo slot pressed:', index);
+  const pickImage = async (index: number) => {
+    console.log('Pick image for slot:', index);
     
     Alert.alert(
       'Select Photo',
@@ -26,21 +21,21 @@ export default function PhotoUpload({ selectedPackage, onPhotosUploaded, onBack 
       [
         {
           text: 'Camera',
-          onPress: () => takePhoto(index)
+          onPress: () => openCamera(index),
         },
         {
           text: 'Photo Library',
-          onPress: () => pickPhoto(index)
+          onPress: () => openLibrary(index),
         },
         {
           text: 'Cancel',
-          style: 'cancel'
-        }
+          style: 'cancel',
+        },
       ]
     );
   };
 
-  const takePhoto = async (index: number) => {
+  const openCamera = async (index: number) => {
     try {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -53,15 +48,15 @@ export default function PhotoUpload({ selectedPackage, onPhotosUploaded, onBack 
         const newPhotos = [...photos];
         newPhotos[index] = result.assets[0].uri;
         setPhotos(newPhotos);
-        console.log('Photo taken and added at index:', index);
+        console.log('Photo added from camera:', result.assets[0].uri);
       }
     } catch (error) {
-      console.error('Error taking photo:', error);
-      Alert.alert('Error', 'Failed to take photo');
+      console.error('Camera error:', error);
+      Alert.alert('Error', 'Failed to open camera');
     }
   };
 
-  const pickPhoto = async (index: number) => {
+  const openLibrary = async (index: number) => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -74,120 +69,225 @@ export default function PhotoUpload({ selectedPackage, onPhotosUploaded, onBack 
         const newPhotos = [...photos];
         newPhotos[index] = result.assets[0].uri;
         setPhotos(newPhotos);
-        console.log('Photo picked and added at index:', index);
+        console.log('Photo added from library:', result.assets[0].uri);
       }
     } catch (error) {
-      console.error('Error picking photo:', error);
-      Alert.alert('Error', 'Failed to pick photo');
+      console.error('Library error:', error);
+      Alert.alert('Error', 'Failed to open photo library');
     }
   };
 
-  const handleContinuePress = () => {
-    console.log('Continue button pressed, photos:', photos.length);
-    
+  const handleContinue = () => {
     const validPhotos = photos.filter(photo => photo && photo.length > 0);
-    
     if (validPhotos.length < 5) {
-      Alert.alert('More Photos Needed', `Please upload all 5 photos. You have ${validPhotos.length} photos.`);
+      Alert.alert('Incomplete', 'Please upload all 5 photos before continuing');
       return;
     }
-
-    onPhotosUploaded(validPhotos);
-  };
-
-  const renderPhotoSlot = (index: number) => {
-    const hasPhoto = photos[index] && photos[index].length > 0;
     
-    return (
-      <TouchableOpacity
-        key={index}
-        activeOpacity={0.7}
-        onPress={() => handlePhotoSlotPress(index)}
-        className="aspect-square bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 justify-center items-center"
-      >
-        {hasPhoto ? (
-          <Image
-            source={{ uri: photos[index] }}
-            className="w-full h-full rounded-xl"
-            resizeMode="cover"
-          />
-        ) : (
-          <View className="items-center">
-            <View className="w-12 h-12 bg-gray-300 rounded-full justify-center items-center mb-2">
-              <Text className="text-gray-600 text-2xl">+</Text>
-            </View>
-            <Text className="text-gray-500 text-sm">Photo {index + 1}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-    );
+    console.log('Continuing with photos:', validPhotos.length);
+    onPhotosUploaded(validPhotos);
   };
 
   const validPhotosCount = photos.filter(photo => photo && photo.length > 0).length;
 
   return (
-    <ScrollView className="flex-1 bg-white">
-      <View className="px-6 pt-8 pb-6">
-        <View className="flex-row items-center mb-6">
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={handleBackPress}
-            className="w-10 h-10 bg-gray-100 rounded-full justify-center items-center mr-4"
-          >
-            <Text className="text-gray-600 text-lg">←</Text>
+    <ScrollView style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onBack} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Back</Text>
           </TouchableOpacity>
-          <Text className="text-2xl font-bold text-gray-900 flex-1">
-            Upload Your Photos
+          
+          <Text style={styles.title}>Upload Your Photos</Text>
+          <Text style={styles.subtitle}>
+            Upload 5 candid photos for your {selectedPackage} package
           </Text>
         </View>
 
-        <View className="bg-indigo-50 rounded-xl p-4 mb-6">
-          <Text className="text-indigo-800 font-semibold mb-2">
-            {selectedPackage.charAt(0).toUpperCase() + selectedPackage.slice(1)} Package Selected
+        <View style={styles.progressContainer}>
+          <Text style={styles.progressText}>
+            Photos: {validPhotosCount}/5
           </Text>
-          <Text className="text-indigo-600 text-sm">
-            Upload 5 candid photos for your AI brand photo transformation
-          </Text>
-        </View>
-
-        <View className="mb-6">
-          <Text className="text-lg font-semibold text-gray-900 mb-4">
-            Upload Photos ({validPhotosCount}/5)
-          </Text>
-          
-          <View className="grid grid-cols-2 gap-4 mb-4">
-            {[0, 1, 2, 3].map(renderPhotoSlot)}
-          </View>
-          
-          <View className="flex-row justify-center">
-            {renderPhotoSlot(4)}
+          <View style={styles.progressBar}>
+            <View 
+              style={[
+                styles.progressFill, 
+                { width: `${(validPhotosCount / 5) * 100}%` }
+              ]} 
+            />
           </View>
         </View>
 
-        <View className="bg-yellow-50 rounded-xl p-4 mb-6">
-          <Text className="text-yellow-800 font-semibold mb-2">Photo Tips</Text>
-          <Text className="text-yellow-700 text-sm mb-1">• Use clear, well-lit photos</Text>
-          <Text className="text-yellow-700 text-sm mb-1">• Face should be clearly visible</Text>
-          <Text className="text-yellow-700 text-sm mb-1">• Variety of angles and expressions</Text>
-          <Text className="text-yellow-700 text-sm">• Avoid sunglasses or hats</Text>
+        <View style={styles.photosGrid}>
+          {[0, 1, 2, 3, 4].map((index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.photoSlot}
+              onPress={() => pickImage(index)}
+              activeOpacity={0.7}
+            >
+              {photos[index] ? (
+                <Image source={{ uri: photos[index] }} style={styles.photoImage} />
+              ) : (
+                <View style={styles.emptySlot}>
+                  <Text style={styles.plusIcon}>+</Text>
+                  <Text style={styles.slotText}>Photo {index + 1}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          ))}
         </View>
 
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={handleContinuePress}
-          disabled={validPhotosCount < 5}
-          className="rounded-xl overflow-hidden"
-        >
-          <LinearGradient
-            colors={validPhotosCount >= 5 ? ['#6366F1', '#8B5CF6'] : ['#D1D5DB', '#9CA3AF']}
-            className="py-4 px-6"
+        <View style={styles.guidelines}>
+          <Text style={styles.guidelinesTitle}>Photo Guidelines:</Text>
+          <Text style={styles.guidelineText}>• Use clear, well-lit photos</Text>
+          <Text style={styles.guidelineText}>• Face should be clearly visible</Text>
+          <Text style={styles.guidelineText}>• Variety of angles and expressions</Text>
+          <Text style={styles.guidelineText}>• Casual, natural poses work best</Text>
+        </View>
+
+        {validPhotosCount === 5 && (
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={handleContinue}
+            activeOpacity={0.8}
           >
-            <Text className="text-white text-lg font-semibold text-center">
-              {validPhotosCount >= 5 ? 'Continue to Processing' : `Upload ${5 - validPhotosCount} More Photos`}
-            </Text>
-          </LinearGradient>
-        </TouchableOpacity>
+            <LinearGradient
+              colors={['#6366F1', '#8B5CF6']}
+              style={styles.continueGradient}
+            >
+              <Text style={styles.continueText}>
+                Continue to Processing
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
       </View>
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  content: {
+    padding: 24,
+  },
+  header: {
+    marginBottom: 24,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#6366F1',
+    fontWeight: '600',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#111827',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+  progressContainer: {
+    marginBottom: 32,
+  },
+  progressText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#6366F1',
+    borderRadius: 4,
+  },
+  photosGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 32,
+  },
+  photoSlot: {
+    width: '48%',
+    aspectRatio: 1,
+    marginBottom: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  photoImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+  },
+  emptySlot: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#F3F4F6',
+    borderWidth: 2,
+    borderColor: '#D1D5DB',
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  plusIcon: {
+    fontSize: 32,
+    color: '#9CA3AF',
+    marginBottom: 8,
+  },
+  slotText: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  guidelines: {
+    backgroundColor: '#F0F9FF',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 24,
+  },
+  guidelinesTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E40AF',
+    marginBottom: 8,
+  },
+  guidelineText: {
+    fontSize: 14,
+    color: '#1E40AF',
+    marginBottom: 4,
+  },
+  continueButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  continueGradient: {
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+  },
+  continueText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+});

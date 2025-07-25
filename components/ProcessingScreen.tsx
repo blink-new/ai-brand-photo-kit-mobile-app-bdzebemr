@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface ProcessingScreenProps {
@@ -11,124 +11,229 @@ interface ProcessingScreenProps {
 
 export default function ProcessingScreen({ photos, selectedPackage, onComplete, onBack }: ProcessingScreenProps) {
   const [progress, setProgress] = useState(0);
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState('Analyzing photos...');
+  const [rotateValue] = useState(new Animated.Value(0));
 
   const steps = [
-    'Analyzing your photos...',
+    'Analyzing photos...',
     'Generating lifestyle shots...',
     'Creating desk scenes...',
-    'Producing speaking photos...',
+    'Producing speaking images...',
     'Crafting Zoom backgrounds...',
-    'Creating bonus content...',
+    'Creating LinkedIn banners...',
+    'Generating IG visuals...',
     'Finalizing your brand kit...'
   ];
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(timer);
-          // Generate mock photos for testing
-          const mockPhotos = {
-            lifestyle: photos.slice(0, 3).map(photo => ({ url: photo, category: 'lifestyle' })),
-            desk: photos.slice(0, 2).map(photo => ({ url: photo, category: 'desk' })),
-            speaking: photos.slice(0, 2).map(photo => ({ url: photo, category: 'speaking' })),
-            zoom: photos.slice(0, 2).map(photo => ({ url: photo, category: 'zoom' })),
-            bonus: {
-              linkedinBanners: photos.slice(0, 2).map(photo => ({ url: photo, type: 'linkedin' })),
-              igBioVisuals: photos.slice(0, 2).map(photo => ({ url: photo, type: 'instagram' }))
-            }
-          };
-          
-          setTimeout(() => {
-            onComplete(mockPhotos);
-          }, 1000);
-          
-          return 100;
-        }
-        return prev + 2;
-      });
-    }, 100);
+    // Start rotation animation
+    const rotateAnimation = Animated.loop(
+      Animated.timing(rotateValue, {
+        toValue: 1,
+        duration: 2000,
+        useNativeDriver: true,
+      })
+    );
+    rotateAnimation.start();
 
-    return () => clearInterval(timer);
-  }, [photos, onComplete]);
+    // Simulate processing steps
+    let stepIndex = 0;
+    const interval = setInterval(() => {
+      if (stepIndex < steps.length) {
+        setCurrentStep(steps[stepIndex]);
+        setProgress(((stepIndex + 1) / steps.length) * 100);
+        stepIndex++;
+      } else {
+        clearInterval(interval);
+        // Generate mock photos for testing
+        const mockPhotos = {
+          lifestyle: [
+            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400',
+            'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400',
+          ],
+          desk: [
+            'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400',
+            'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400',
+          ],
+          speaking: [
+            'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400',
+            'https://images.unsplash.com/photo-1556157382-97eda2d62296?w=400',
+          ],
+          zoom: [
+            'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400',
+            'https://images.unsplash.com/photo-1600298881974-6be191ceeda1?w=400',
+          ],
+          bonus: [
+            'https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=400',
+            'https://images.unsplash.com/photo-1611605698335-8b1569810432?w=400',
+          ]
+        };
+        
+        setTimeout(() => {
+          onComplete(mockPhotos);
+        }, 1000);
+      }
+    }, 1500);
 
-  useEffect(() => {
-    const stepTimer = setInterval(() => {
-      setCurrentStep(prev => {
-        if (prev < steps.length - 1) {
-          return prev + 1;
-        }
-        return prev;
-      });
-    }, 2000);
-
-    return () => clearInterval(stepTimer);
+    return () => {
+      clearInterval(interval);
+      rotateAnimation.stop();
+    };
   }, []);
 
-  const handleBackPress = () => {
-    console.log('Back button pressed from processing');
-    onBack();
-  };
+  const rotate = rotateValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   return (
-    <View className="flex-1 bg-white">
-      <View className="px-6 pt-8 pb-6 flex-1">
-        <View className="flex-row items-center mb-8">
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={handleBackPress}
-            className="w-10 h-10 bg-gray-100 rounded-full justify-center items-center mr-4"
-          >
-            <Text className="text-gray-600 text-lg">←</Text>
-          </TouchableOpacity>
-          <Text className="text-2xl font-bold text-gray-900 flex-1">
-            Processing Photos
-          </Text>
-        </View>
+    <View style={styles.container}>
+      <View style={styles.content}>
+        <TouchableOpacity onPress={onBack} style={styles.backButton}>
+          <Text style={styles.backButtonText}>← Back</Text>
+        </TouchableOpacity>
 
-        <View className="flex-1 justify-center items-center">
-          <View className="w-32 h-32 mb-8">
+        <Text style={styles.title}>Creating Your Brand Kit</Text>
+        <Text style={styles.subtitle}>
+          Our AI is transforming your photos into professional brand images
+        </Text>
+
+        <View style={styles.progressContainer}>
+          <Animated.View style={[styles.progressCircle, { transform: [{ rotate }] }]}>
             <LinearGradient
-              colors={['#6366F1', '#8B5CF6']}
-              className="w-full h-full rounded-full justify-center items-center"
-              style={{
-                transform: [{ rotate: `${progress * 3.6}deg` }]
-              }}
+              colors={['#6366F1', '#8B5CF6', '#F59E0B']}
+              style={styles.gradientCircle}
             >
-              <View className="w-24 h-24 bg-white rounded-full justify-center items-center">
-                <Text className="text-2xl font-bold text-indigo-600">
-                  {Math.round(progress)}%
-                </Text>
+              <View style={styles.innerCircle}>
+                <Text style={styles.progressText}>{Math.round(progress)}%</Text>
               </View>
             </LinearGradient>
-          </View>
+          </Animated.View>
+        </View>
 
-          <Text className="text-xl font-semibold text-gray-900 mb-4 text-center">
-            Creating Your Brand Photos
+        <Text style={styles.stepText}>{currentStep}</Text>
+
+        <View style={styles.stepsContainer}>
+          {steps.map((step, index) => (
+            <View key={index} style={styles.stepItem}>
+              <View style={[
+                styles.stepIndicator,
+                { backgroundColor: index <= (progress / 100) * steps.length - 1 ? '#10B981' : '#E5E7EB' }
+              ]} />
+              <Text style={[
+                styles.stepLabel,
+                { color: index <= (progress / 100) * steps.length - 1 ? '#374151' : '#9CA3AF' }
+              ]}>
+                {step}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.infoContainer}>
+          <Text style={styles.infoText}>
+            This usually takes 2-3 minutes. We're creating high-quality professional photos 
+            tailored specifically for your {selectedPackage} package.
           </Text>
-
-          <Text className="text-lg text-indigo-600 mb-8 text-center">
-            {steps[currentStep]}
-          </Text>
-
-          <View className="w-full bg-gray-200 rounded-full h-3 mb-8">
-            <View 
-              className="bg-indigo-600 h-3 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </View>
-
-          <View className="bg-indigo-50 rounded-xl p-6 w-full">
-            <Text className="text-indigo-800 font-semibold mb-2 text-center">
-              {selectedPackage.charAt(0).toUpperCase() + selectedPackage.slice(1)} Package
-            </Text>
-            <Text className="text-indigo-600 text-center">
-              Generating professional photos for your brand
-            </Text>
-          </View>
         </View>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  content: {
+    flex: 1,
+    padding: 24,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 24,
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#6366F1',
+    fontWeight: '600',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#111827',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 48,
+  },
+  progressContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  progressCircle: {
+    width: 120,
+    height: 120,
+  },
+  gradientCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  innerCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  progressText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#6366F1',
+  },
+  stepText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#374151',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  stepsContainer: {
+    marginBottom: 32,
+  },
+  stepItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  stepIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 12,
+  },
+  stepLabel: {
+    fontSize: 14,
+    flex: 1,
+  },
+  infoContainer: {
+    backgroundColor: '#F0F9FF',
+    padding: 16,
+    borderRadius: 12,
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#1E40AF',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+});
