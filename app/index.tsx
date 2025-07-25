@@ -1,94 +1,102 @@
 import React, { useState } from 'react';
-import { View, Text, SafeAreaView, StatusBar, StyleSheet } from 'react-native';
-import PackageSelection from '../components/PackageSelection';
-import PhotoUpload from '../components/PhotoUpload';
-import ProcessingScreen from '../components/ProcessingScreen';
-import BrandKitGallery from '../components/BrandKitGallery';
-
-type Screen = 'package' | 'upload' | 'processing' | 'gallery';
-type Package = 'starter' | 'professional' | 'premium';
+import { View, Text, TouchableOpacity, Alert, StyleSheet, SafeAreaView } from 'react-native';
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('package');
-  const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
-  const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
-  const [generatedPhotos, setGeneratedPhotos] = useState<any>(null);
+  const [counter, setCounter] = useState(0);
+  const [screen, setScreen] = useState('main');
 
-  console.log('App render - currentScreen:', currentScreen, 'selectedPackage:', selectedPackage);
-
-  const handlePackageSelect = (packageType: Package) => {
-    console.log('Package selected:', packageType);
-    setSelectedPackage(packageType);
-    setCurrentScreen('upload');
+  const handleTestPress = () => {
+    console.log('Test button pressed!');
+    setCounter(prev => prev + 1);
+    Alert.alert('Success!', `Button pressed ${counter + 1} times`);
   };
 
-  const handlePhotosUploaded = (photos: string[]) => {
-    console.log('Photos uploaded:', photos.length);
-    setUploadedPhotos(photos);
-    setCurrentScreen('processing');
+  const handleNavigatePress = () => {
+    console.log('Navigate button pressed!');
+    setScreen(screen === 'main' ? 'second' : 'main');
+    Alert.alert('Navigation', `Switched to ${screen === 'main' ? 'second' : 'main'} screen`);
   };
 
-  const handleProcessingComplete = (photos: any) => {
-    console.log('Processing complete');
-    setGeneratedPhotos(photos);
-    setCurrentScreen('gallery');
+  const handlePackagePress = (packageName: string) => {
+    console.log('Package button pressed:', packageName);
+    Alert.alert('Package Selected', `You selected ${packageName} package!`);
   };
 
-  const handleBackToPackages = () => {
-    console.log('Back to packages');
-    setCurrentScreen('package');
-    setSelectedPackage(null);
-  };
-
-  const handleBackToUpload = () => {
-    console.log('Back to upload');
-    setCurrentScreen('upload');
-  };
-
-  const handleBackToGallery = () => {
-    console.log('Back to gallery');
-    setCurrentScreen('gallery');
-  };
-
-  const renderScreen = () => {
-    switch (currentScreen) {
-      case 'package':
-        return <PackageSelection onSelectPackage={handlePackageSelect} />;
-      case 'upload':
-        return (
-          <PhotoUpload
-            selectedPackage={selectedPackage!}
-            onPhotosUploaded={handlePhotosUploaded}
-            onBack={handleBackToPackages}
-          />
-        );
-      case 'processing':
-        return (
-          <ProcessingScreen
-            photos={uploadedPhotos}
-            selectedPackage={selectedPackage!}
-            onComplete={handleProcessingComplete}
-            onBack={handleBackToUpload}
-          />
-        );
-      case 'gallery':
-        return (
-          <BrandKitGallery
-            photos={generatedPhotos}
-            selectedPackage={selectedPackage!}
-            onBack={handleBackToGallery}
-          />
-        );
-      default:
-        return <PackageSelection onSelectPackage={handlePackageSelect} />;
-    }
-  };
+  if (screen === 'second') {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <Text style={styles.title}>Second Screen</Text>
+          <Text style={styles.subtitle}>Navigation test successful!</Text>
+          
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleNavigatePress}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.buttonText}>Back to Main</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <View style={styles.content}>
-        {renderScreen()}
+        <Text style={styles.title}>AI Brand Photo Kit</Text>
+        <Text style={styles.subtitle}>Touch Test & Package Selection</Text>
+        
+        {/* Touch Test Buttons */}
+        <View style={styles.testSection}>
+          <Text style={styles.sectionTitle}>Touch Test</Text>
+          <Text style={styles.counter}>Counter: {counter}</Text>
+          
+          <TouchableOpacity
+            style={[styles.button, styles.testButton]}
+            onPress={handleTestPress}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.buttonText}>Test Button</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.button, styles.navButton]}
+            onPress={handleNavigatePress}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.buttonText}>Navigate Test</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Package Selection */}
+        <View style={styles.packageSection}>
+          <Text style={styles.sectionTitle}>Package Selection</Text>
+          
+          <TouchableOpacity
+            style={[styles.button, styles.starterButton]}
+            onPress={() => handlePackagePress('Starter')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.buttonText}>Starter - $39</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.button, styles.proButton]}
+            onPress={() => handlePackagePress('Professional')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.buttonText}>Professional - $69</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={[styles.button, styles.premiumButton]}
+            onPress={() => handlePackagePress('Premium')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.buttonText}>Premium - $99</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -101,5 +109,71 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    padding: 24,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#111827',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  testSection: {
+    marginBottom: 32,
+    padding: 16,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+  },
+  packageSection: {
+    padding: 16,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  counter: {
+    fontSize: 18,
+    color: '#374151',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  button: {
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginBottom: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  testButton: {
+    backgroundColor: '#10B981',
+  },
+  navButton: {
+    backgroundColor: '#3B82F6',
+  },
+  starterButton: {
+    backgroundColor: '#6366F1',
+  },
+  proButton: {
+    backgroundColor: '#F59E0B',
+  },
+  premiumButton: {
+    backgroundColor: '#EF4444',
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
